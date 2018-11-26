@@ -25,6 +25,13 @@ from openedx.features.course_duration_limits.config import (
     EXPERIMENT_ID,
     EXPERIMENT_DATA_HOLDBACK_KEY
 )
+from django_comment_common.models import (
+    FORUM_ROLE_ADMINISTRATOR,
+    FORUM_ROLE_MODERATOR,
+    FORUM_ROLE_GROUP_MODERATOR,
+    FORUM_ROLE_COMMUNITY_TA,
+    Role
+)
 from student.models import CourseEnrollment
 from student.roles import CourseBetaTesterRole, CourseInstructorRole, CourseStaffRole
 
@@ -105,6 +112,11 @@ class CourseDurationLimitConfig(StackedConfigurationModel):
 
                 if staff_role or instructor_role or beta_tester_role:
                     return False
+
+            roles = [FORUM_ROLE_COMMUNITY_TA, FORUM_ROLE_GROUP_MODERATOR, FORUM_ROLE_MODERATOR,
+                     FORUM_ROLE_ADMINISTRATOR]
+            if Role.user_has_role_for_course(user, course.id, roles):
+                return False
 
         # enrollment might be None if the user isn't enrolled. In that case,
         # return enablement as if the user enrolled today
