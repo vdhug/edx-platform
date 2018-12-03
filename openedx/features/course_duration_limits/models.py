@@ -95,6 +95,11 @@ class CourseDurationLimitConfig(StackedConfigurationModel):
             user = enrollment.user
 
         if user:
+            staff_role = CourseStaffRole(course_key).has_user(user)
+            instructor_role = CourseInstructorRole(course_key).has_user(user)
+            beta_tester_role = CourseBetaTesterRole(course_key).has_user(user)
+
+        if user:
             course_masquerade = get_course_masquerade(user, course_key)
             if course_masquerade:
                 verified_mode_id = settings.COURSE_ENROLLMENT_MODES.get(CourseMode.VERIFIED, {}).get('id')
@@ -115,7 +120,7 @@ class CourseDurationLimitConfig(StackedConfigurationModel):
 
             roles = [FORUM_ROLE_COMMUNITY_TA, FORUM_ROLE_GROUP_MODERATOR, FORUM_ROLE_MODERATOR,
                      FORUM_ROLE_ADMINISTRATOR]
-            if Role.user_has_role_for_course(user, course.id, roles):
+            if Role.user_has_role_for_course(user, course_key, roles):
                 return False
 
         # enrollment might be None if the user isn't enrolled. In that case,
