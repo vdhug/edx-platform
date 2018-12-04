@@ -1,0 +1,55 @@
+<%!
+from django.utils.translation import ugettext as _
+%>
+
+<%namespace name='static' file='../static_content.html'/>
+
+<%inherit file="../main.html" />
+
+<%block name="pagetitle">
+${_("Course Duration")}
+</%block>
+
+<%block name="content">
+<section class="container outside-app">
+  <h1>${_("Student Support: Course Duration")}</h1>
+  <div class="enrollment-content">
+    <div class="enrollment-search">
+        <form class="enrollment-form">
+            <label class="sr" for="enrollment-query-input">Search</label>
+            <input id="enrollment-query-input" type="text" name="course_key" value="${course_key}" placeholder="Course Id">
+            <input type="submit" value="Search" class="btn-disable-on-submit">
+        </form>
+    </div>
+
+    <div class="enrollment-results">
+      % if len(results) > 0:
+        <table id="enrollment-table" class="enrollment-table display compact nowrap">
+          <thead>
+            <tr>
+              <th>${_("Course ID")}</th>
+              <th>${_("Course Name")}</th>
+              <th>${_("Enabled")}</th>
+              <th>${_("Enabled As Of")}</th>
+              <th>${_("Reason")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            % for data in results:
+            <tr>
+              <td>${data.get('course_id')}</td>
+              <td>${data.get('course_name')}</td>
+              <td>${data.get('enabled')}</td>
+              <td>${data.get('enabled_as_of')}</td>
+              <td>${data.get('reason')}</td>
+            </tr>
+            % endfor
+          </tbody>
+        </table>
+      % elif course_key:
+        <div>${_("No results found")}</div>
+      % endif
+    </div>
+  </div>
+</section>
+</%block>
