@@ -6,34 +6,26 @@ Course Duration Limit Configuration Models
 from __future__ import unicode_literals
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
-from xmodule.partitions.partitions import ENROLLMENT_TRACK_PARTITION_ID
 
 from course_modes.models import CourseMode
-from lms.djangoapps.courseware.masquerade import get_masquerade_role, get_course_masquerade, \
-    is_masquerading_as_specific_student
-
 from experiments.models import ExperimentData
+from lms.djangoapps.courseware.masquerade import get_course_masquerade, get_masquerade_role, is_masquerading_as_specific_student
 from openedx.core.djangoapps.config_model_utils.models import StackedConfigurationModel
+from openedx.features.content_type_gating.helpers import has_staff_roles
 from openedx.features.content_type_gating.partitions import CONTENT_GATING_PARTITION_ID, CONTENT_TYPE_GATE_GROUP_IDS
 from openedx.features.course_duration_limits.config import (
     CONTENT_TYPE_GATING_FLAG,
     EXPERIMENT_ID,
     EXPERIMENT_DATA_HOLDBACK_KEY
 )
-from django_comment_common.models import (
-    FORUM_ROLE_ADMINISTRATOR,
-    FORUM_ROLE_MODERATOR,
-    FORUM_ROLE_GROUP_MODERATOR,
-    FORUM_ROLE_COMMUNITY_TA,
-    Role
-)
 from student.models import CourseEnrollment
-from student.roles import CourseBetaTesterRole, CourseInstructorRole, CourseStaffRole
+from xmodule.partitions.partitions import ENROLLMENT_TRACK_PARTITION_ID
 
 
 @python_2_unicode_compatible
@@ -54,6 +46,36 @@ class CourseDurationLimitConfig(StackedConfigurationModel):
             'created after this date and time (UTC) will be affected.'
         )
     )
+
+    @classmethod
+    def has_full_access_role_in_masquerade(cls, user, course_key, course_masquerade):
+        """
+        When masquerading as a user, the course duration limits will never trigger the course to expire, redirecting the user.
+        However, the user masquerade roles are still used to determine whether the course duration limits banner will display.
+        Enable the course duration limits banner for the enrollment if a masquerading user has any of the following roles
+        Staff, Instructor, Beta Tester, Forum Community TA, Forum Group Moderator, Forum Moderator, Forum Administrator
+        """
+        masquerade_role = get_masquerade_role(user, course_key)
+        verified_mode_id = settings.COURSE_ENROLLMENT_MODES.get(CourseMode.VERIFIED, {}).get('id')
+        # Masquerading users can select the the role of a verified users without selecting a specific user
+        is_verified = (course_masquerade.user_partition_id == ENROLLMENT_TRACK_PARTITION_ID
+                       and course_masquerade.group_id == verified_mode_id)
+        # Masquerading users can select the role of staff without selecting a specific user
+        is_staff = masquerade_role == 'staff'
+        # Masquerading users can select other full access roles for which content type gating is disabled
+        is_full_access = (course_masquerade.user_partition_id == CONTENT_GATING_PARTITION_ID
+                          and course_masquerade.group_id == CONTENT_TYPE_GATE_GROUP_IDS['full_access'])
+        # When masquerading as a specific user, we can check that user's staff roles as we would with a normal user
+        is_staff_role = False
+        try:
+            user = User.objects.get(username=course_masquerade.user_name)
+            is_staff_role = has_staff_roles(user, course_key)
+        except User.DoesNotExist:
+            pass
+
+        if is_verified or is_full_access or is_staff or is_staff_role:
+            return True
+        return False
 
     @classmethod
     def enabled_for_enrollment(cls, enrollment=None, user=None, course_key=None):
@@ -90,37 +112,15 @@ class CourseDurationLimitConfig(StackedConfigurationModel):
         if enrollment is None:
             enrollment = CourseEnrollment.get_enrollment(user, course_key)
 
-        # if the user is has a role of staff, instructor or beta tester their access should not expire
         if user is None and enrollment is not None:
             user = enrollment.user
 
         if user:
-            staff_role = CourseStaffRole(course_key).has_user(user)
-            instructor_role = CourseInstructorRole(course_key).has_user(user)
-            beta_tester_role = CourseBetaTesterRole(course_key).has_user(user)
-
-        if user:
             course_masquerade = get_course_masquerade(user, course_key)
             if course_masquerade:
-                verified_mode_id = settings.COURSE_ENROLLMENT_MODES.get(CourseMode.VERIFIED, {}).get('id')
-                is_verified = (course_masquerade.user_partition_id == ENROLLMENT_TRACK_PARTITION_ID
-                               and course_masquerade.group_id == verified_mode_id)
-                is_full_access = (course_masquerade.user_partition_id == CONTENT_GATING_PARTITION_ID
-                                  and course_masquerade.group_id == CONTENT_TYPE_GATE_GROUP_IDS['full_access'])
-                is_staff = get_masquerade_role(user, course_key) == 'staff'
-                if is_verified or is_full_access or is_staff:
+                if cls.has_full_access_role_in_masquerade(user, course_key, course_masquerade):
                     return False
-            else:
-                staff_role = CourseStaffRole(course_key).has_user(user)
-                instructor_role = CourseInstructorRole(course_key).has_user(user)
-                beta_tester_role = CourseBetaTesterRole(course_key).has_user(user)
-
-                if staff_role or instructor_role or beta_tester_role:
-                    return False
-
-            roles = [FORUM_ROLE_COMMUNITY_TA, FORUM_ROLE_GROUP_MODERATOR, FORUM_ROLE_MODERATOR,
-                     FORUM_ROLE_ADMINISTRATOR]
-            if Role.user_has_role_for_course(user, course_key, roles):
+            if has_staff_roles(user, course_key):
                 return False
 
         # enrollment might be None if the user isn't enrolled. In that case,

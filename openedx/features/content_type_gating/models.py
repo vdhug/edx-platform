@@ -10,16 +10,17 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
-from lms.djangoapps.courseware.masquerade import get_course_masquerade, is_masquerading_as_specific_student
 
+from lms.djangoapps.courseware.masquerade import get_course_masquerade, is_masquerading_as_specific_student
 from experiments.models import ExperimentData
-from student.models import CourseEnrollment
 from openedx.core.djangoapps.config_model_utils.models import StackedConfigurationModel
+from openedx.features.content_type_gating.helpers import has_staff_roles
 from openedx.features.course_duration_limits.config import (
     CONTENT_TYPE_GATING_FLAG,
     EXPERIMENT_ID,
     EXPERIMENT_DATA_HOLDBACK_KEY
 )
+from student.models import CourseEnrollment
 
 
 @python_2_unicode_compatible
@@ -84,6 +85,15 @@ class ContentTypeGatingConfig(StackedConfigurationModel):
 
         if enrollment is None:
             enrollment = CourseEnrollment.get_enrollment(user, course_key)
+
+        if user is None and enrollment is not None:
+            user = enrollment.user
+
+        if user:
+            # TODO: Move masquerade checks to enabled_for_enrollment from content_type_gating/partitions.py
+            # TODO: Consolidate masquerade checks into shared function like has_staff_roles below
+            if has_staff_roles(user, course_key):
+                return False
 
         # enrollment might be None if the user isn't enrolled. In that case,
         # return enablement as if the user enrolled today

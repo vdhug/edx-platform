@@ -19,8 +19,7 @@ from django_comment_common.models import (
     FORUM_ROLE_ADMINISTRATOR,
     FORUM_ROLE_MODERATOR,
     FORUM_ROLE_GROUP_MODERATOR,
-    FORUM_ROLE_COMMUNITY_TA,
-    Role
+    FORUM_ROLE_COMMUNITY_TA
 )
 from django_comment_client.tests.factories import RoleFactory
 from course_modes.models import CourseMode
