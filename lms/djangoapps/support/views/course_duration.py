@@ -19,7 +19,9 @@ class CourseDurationSupportView(View):
     """
     @method_decorator(require_support_permission)
     def get(self, request):
-        """Render the course duration tool view."""
+        """
+        Render the course duration tool view.
+        """
         course_key = request.GET.get('course_key', '')
 
         if course_key:
@@ -33,6 +35,9 @@ class CourseDurationSupportView(View):
         })
 
     def _get_course_duration_info(self, course_key):
+        """
+        Fetch course duration information from database
+        """
         results = []
 
         try:

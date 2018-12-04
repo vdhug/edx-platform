@@ -1,9 +1,10 @@
+<%page expression_filter="h"/>
+
 <%!
 from django.utils.translation import ugettext as _
 %>
 
 <%namespace name='static' file='../static_content.html'/>
-
 <%inherit file="../main.html" />
 
 <%block name="pagetitle">
@@ -13,18 +14,18 @@ ${_("Course Duration")}
 <%block name="content">
 <section class="container outside-app">
   <h1>${_("Student Support: Course Duration")}</h1>
-  <div class="enrollment-content">
-    <div class="enrollment-search">
-        <form class="enrollment-form">
-            <label class="sr" for="enrollment-query-input">Search</label>
-            <input id="enrollment-query-input" type="text" name="course_key" value="${course_key}" placeholder="Course Id">
+  <div class="course-duration-content">
+    <div class="course-duration-search">
+        <form class="course-duration-form">
+            <label class="sr" for="course-query-input">Search</label>
+            <input id="course-query-input" type="text" name="course_key" value="${course_key}" placeholder="Course Id">
             <input type="submit" value="Search" class="btn-disable-on-submit">
         </form>
     </div>
 
-    <div class="enrollment-results">
+    <div class="course-duration-results">
       % if len(results) > 0:
-        <table id="enrollment-table" class="enrollment-table display compact nowrap">
+        <table id="course-duration-table" class="course-duration-table display compact nowrap">
           <thead>
             <tr>
               <th>${_("Course ID")}</th>
