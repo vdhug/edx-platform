@@ -161,7 +161,7 @@ class StackedConfigurationModel(ConfigurationModel):
                         provenances[field.name] = Provenance.global_
 
         current = cls(**values)
-        current.provenances = {field: provenances[field.name] for field in stackable_fields}
+        current.provenances = {field.name: provenances[field.name] for field in stackable_fields}
         cache.set(cache_key_name, current, cls.cache_timeout)
         return current
 
