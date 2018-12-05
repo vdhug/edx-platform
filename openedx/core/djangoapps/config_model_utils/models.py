@@ -144,13 +144,23 @@ class StackedConfigurationModel(ConfigurationModel):
             F('site').desc(nulls_first=True),
         )
 
+        provenances = defaultdict(lambda: Provenance.default)
         for override in overrides:
             for field in stackable_fields:
                 value = field.value_from_object(override)
                 if value != field_defaults[field.name]:
                     values[field.name] = value
+                    if override.course_id is not None:
+                        provenances[field.name] = Provenance.course
+                    elif override.org is not None:
+                        provenances[field.name] = Provenance.org
+                    elif override.site_id is not None:
+                        provenances[field.name] = Provenance.site
+                    else:
+                        provenances[field.name] = Provenance.global_
 
         current = cls(**values)
+        current.provenances = {field: provenances[field.name] for field in stackable_fields}
         cache.set(cache_key_name, current, cls.cache_timeout)
         return current
 
