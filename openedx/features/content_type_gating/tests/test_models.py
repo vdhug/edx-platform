@@ -206,19 +206,27 @@ class TestContentTypeGatingConfig(CacheIsolationTestCase):
         # Plus 1 for the edX/toy/2012_Fall course
         self.assertEqual(len(all_configs), 3**4 + 1)
 
-        from pprint import pprint
-        pprint(all_configs)
-
-        from openedx.core.djangoapps.site_configuration.models import SiteConfiguration
-        pprint({cfg: (cfg.values, cfg.site) for cfg in SiteConfiguration.objects.all()})
-
-        pprint({(cfg.site, cfg.org, cfg.course): cfg for cfg in ContentTypeGatingConfig.objects.current_set()})
-
         # Point-test some of the final configurations
         self.assertEqual(
             all_configs[CourseLocator('7-True', 'test_course', 'run-None')],
             {
                 'enabled': (True, Provenance.org),
+                'enabled_as_of': (datetime(2018, 1, 1, 5, tzinfo=pytz.UTC), Provenance.course),
+                'studio_override_enabled': (None, Provenance.default),
+            }
+        )
+        self.assertEqual(
+            all_configs[CourseLocator('7-True', 'test_course', 'run-False')],
+            {
+                'enabled': (False, Provenance.course),
+                'enabled_as_of': (datetime(2018, 1, 1, 5, tzinfo=pytz.UTC), Provenance.course),
+                'studio_override_enabled': (None, Provenance.default),
+            }
+        )
+        self.assertEqual(
+            all_configs[CourseLocator('7-None', 'test_course', 'run-None')],
+            {
+                'enabled': (True, Provenance.site),
                 'enabled_as_of': (datetime(2018, 1, 1, 5, tzinfo=pytz.UTC), Provenance.course),
                 'studio_override_enabled': (None, Provenance.default),
             }
