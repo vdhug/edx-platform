@@ -31,6 +31,7 @@ class Provenance(Enum):
     global_ = _('Global')
     default = _('Default')
 
+
 class StackedConfigurationModel(ConfigurationModel):
     """
     A ConfigurationModel that stacks Global, Site, Org, and Course level
