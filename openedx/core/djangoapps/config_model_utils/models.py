@@ -212,11 +212,11 @@ class StackedConfigurationModel(ConfigurationModel):
                 if value != field_defaults[field.name]:
                     return (value, provenance)
 
-                return (field_defaults[field.name], Provenance.default)
+            return (field_defaults[field.name], Provenance.default)
 
         return {
             course.id: {
-                field: provenance(course, field)
+                field.name: provenance(course, field)
                 for field in stackable_fields
             }
             for course in all_courses
