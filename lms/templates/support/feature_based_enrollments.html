@@ -30,10 +30,9 @@ ${_("Feature Based Enrollments")}
             <tr>
               <th>${_("Course ID")}</th>
               <th>${_("Course Name")}</th>
-              <th>${_("Duration Limits Enabled")}</th>
-              <th>${_("Duration Limits Enabled As Of")}</th>
-              <th>${_("Content Gating Enabled")}</th>
-              <th>${_("Content Gating Enabled As Of")}</th>
+              <th>${_("Is Enabled")}</th>
+              <th>${_("Enabled As Of")}</th>
+              <th>${_("Reason")}</th>
             </tr>
           </thead>
           <tbody>
@@ -41,10 +40,9 @@ ${_("Feature Based Enrollments")}
             <tr>
               <td>${data.get('course_id')}</td>
               <td>${data.get('course_name')}</td>
-              <td>${data.get('duration_enabled')}</td>
-              <td>${data.get('duration_enabled_as_of')}</td>
-              <td>${data.get('content_gating_enabled')}</td>
-              <td>${data.get('content_gating_enabled_as_of')}</td>
+              <td>${data.get('enabled')}</td>
+              <td>${data.get('enabled_as_of')}</td>
+              <td>${data.get('reason')}</td>
             </tr>
             % endfor
           </tbody>
