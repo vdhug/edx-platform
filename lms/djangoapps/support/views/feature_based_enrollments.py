@@ -9,10 +9,11 @@ from lms.djangoapps.support.decorators import require_support_permission
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
 from openedx.features.course_duration_limits.models import CourseDurationLimitConfig
+from openedx.features.content_type_gating.models import ContentTypeGatingConfig
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 
 
-class CourseDurationSupportView(View):
+class FeatureBasedEnrollmentsSupportView(View):
     """
     View for listing course duration settings for
     support team.
@@ -29,7 +30,7 @@ class CourseDurationSupportView(View):
         else:
             results = []
 
-        return render_to_response('support/course_duration.html', {
+        return render_to_response('support/feature_based_enrollments.html', {
             'course_key': course_key,
             'results': results,
         })
@@ -43,13 +44,15 @@ class CourseDurationSupportView(View):
         try:
             key = CourseKey.from_string(course_key)
             course = CourseOverview.objects.values('display_name').get(id=key)
-            current_config = CourseDurationLimitConfig.current(course_key=key)
+            duration_config = CourseDurationLimitConfig.current(course_key=key)
+            gating_config = ContentTypeGatingConfig.current(course_key=key)
             data = {
                 'course_id': course_key,
                 'course_name': course.get('display_name'),
-                'enabled': current_config.enabled or False,
-                'enabled_as_of': str(current_config.enabled_as_of) if current_config.enabled_as_of else 'N/A',
-                'reason': 'TBD',  # TODO - determine how to find reason from config model
+                'duration_enabled': duration_config.enabled or False,
+                'duration_enabled_as_of': str(duration_config.enabled_as_of) if duration_config.enabled_as_of else 'N/A',
+                'content_gating_enabled': gating_config.enabled or False,
+                'content_gating_enabled_as_of': str(gating_config.enabled_as_of) if gating_config.enabled_as_of else 'N/A',
             }
             results.append(data)
 

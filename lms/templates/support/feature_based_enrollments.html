@@ -8,31 +8,32 @@ from django.utils.translation import ugettext as _
 <%inherit file="../main.html" />
 
 <%block name="pagetitle">
-${_("Course Duration")}
+${_("Feature Based Enrollments")}
 </%block>
 
 <%block name="content">
 <section class="container outside-app">
-  <h1>${_("Student Support: Course Duration")}</h1>
-  <div class="course-duration-content">
-    <div class="course-duration-search">
-        <form class="course-duration-form">
+  <h1>${_("Student Support: Feature Based Enrollments")}</h1>
+  <div class="fb-enrollments-content">
+    <div class="fb-enrollments-search">
+        <form class="fb-enrollments-form">
             <label class="sr" for="course-query-input">Search</label>
             <input id="course-query-input" type="text" name="course_key" value="${course_key}" placeholder="Course Id">
             <input type="submit" value="Search" class="btn-disable-on-submit">
         </form>
     </div>
 
-    <div class="course-duration-results">
+    <div class="fb-enrollments-results">
       % if len(results) > 0:
-        <table id="course-duration-table" class="course-duration-table display compact nowrap">
+        <table id="fb-enrollments-table" class="fb-enrollments-table display compact nowrap">
           <thead>
             <tr>
               <th>${_("Course ID")}</th>
               <th>${_("Course Name")}</th>
-              <th>${_("Enabled")}</th>
-              <th>${_("Enabled As Of")}</th>
-              <th>${_("Reason")}</th>
+              <th>${_("Duration Limits Enabled")}</th>
+              <th>${_("Duration Limits Enabled As Of")}</th>
+              <th>${_("Content Gating Enabled")}</th>
+              <th>${_("Content Gating Enabled As Of")}</th>
             </tr>
           </thead>
           <tbody>
@@ -40,9 +41,10 @@ ${_("Course Duration")}
             <tr>
               <td>${data.get('course_id')}</td>
               <td>${data.get('course_name')}</td>
-              <td>${data.get('enabled')}</td>
-              <td>${data.get('enabled_as_of')}</td>
-              <td>${data.get('reason')}</td>
+              <td>${data.get('duration_enabled')}</td>
+              <td>${data.get('duration_enabled_as_of')}</td>
+              <td>${data.get('content_gating_enabled')}</td>
+              <td>${data.get('content_gating_enabled_as_of')}</td>
             </tr>
             % endfor
           </tbody>

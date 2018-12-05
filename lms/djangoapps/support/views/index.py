@@ -37,9 +37,9 @@ SUPPORT_INDEX_URLS = [
         "description": _("View, create, and reissue learner entitlements"),
     },
     {
-        "url": reverse_lazy("support:course_duration"),
-        "name": _("Course Duration"),
-        "description": _("View course duration settings"),
+        "url": reverse_lazy("support:feature_based_enrollments"),
+        "name": _("Feature Based Enrollments"),
+        "description": _("View feature based enrollment settings"),
     },
 ]
 
